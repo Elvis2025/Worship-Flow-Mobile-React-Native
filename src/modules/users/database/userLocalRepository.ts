@@ -1,0 +1,19 @@
+import { executeSql, getAll, getFirst } from '@/database/sqlite';
+import { PermissionDto } from '../types/permission.types';
+import { RoleDto } from '../types/role.types';
+import { PaginatedResult, UserAvailability, UserDto, UserFilters } from '../types/user.types';
+import { mapPermissionToRow, mapRoleToRow, mapRowToUser, mapUserToRow } from './userMappers';
+import { userTableStatements } from './userTables';
+
+export const userLocalRepository = {
+  async init() { await Promise.all(userTableStatements.map(statement => executeSql(statement))); },
+  async saveUsers(users: UserDto[]) { await this.init(); await Promise.all(users.map(user => this.upsertUser(user, false))); },
+  async getUsers(filters: UserFilters): Promise<PaginatedResult<UserDto>> { await this.init(); const rows = await getAll<{ payloadJson: string }>('SELECT payloadJson FROM users WHERE isDeleted = 0 ORDER BY updatedAt DESC'); let items = rows.map(mapRowToUser); if (filters.search) { const term = filters.search.toLowerCase(); items = items.filter(u => `${u.fullName} ${u.email} ${u.mainInstrument ?? ''}`.toLowerCase().includes(term)); } if (filters.instrument) items = items.filter(u => u.mainInstrument === filters.instrument); if (filters.status) items = items.filter(u => u.status === filters.status); if (filters.role) items = items.filter(u => u.roles.some(r => r.id === filters.role || r.name === filters.role)); if (filters.vocalRange) items = items.filter(u => u.vocalRange === filters.vocalRange); const start = (filters.page - 1) * filters.pageSize; return { items: items.slice(start, start + filters.pageSize), page: filters.page, pageSize: filters.pageSize, total: items.length, hasNextPage: start + filters.pageSize < items.length }; },
+  async getUserById(id: string) { await this.init(); const row = await getFirst<{ payloadJson: string }>('SELECT payloadJson FROM users WHERE id = ? AND isDeleted = 0', [id]); return row ? mapRowToUser(row) : null; },
+  async upsertUser(user: UserDto, dirty = true) { await this.init(); const row = mapUserToRow(user); await executeSql('INSERT OR REPLACE INTO users (id, tenantId, payloadJson, updatedAt, syncedAt, isDirty, isDeleted) VALUES (?, ?, ?, ?, ?, ?, 0)', [row.id, row.tenantId, row.payloadJson, row.updatedAt, dirty ? null : row.syncedAt, dirty ? 1 : 0]); },
+  async markUserDirty(id: string) { await executeSql('UPDATE users SET isDirty = 1, updatedAt = ? WHERE id = ?', [new Date().toISOString(), id]); },
+  async softDeleteUserLocal(id: string) { await executeSql('UPDATE users SET isDeleted = 1, isDirty = 1, updatedAt = ? WHERE id = ?', [new Date().toISOString(), id]); },
+  async saveRoles(roles: RoleDto[], tenantId?: string) { await this.init(); await Promise.all(roles.map(role => { const row = mapRoleToRow(role, tenantId); return executeSql('INSERT OR REPLACE INTO roles (id, tenantId, payloadJson, updatedAt, syncedAt, isDirty, isDeleted) VALUES (?, ?, ?, ?, ?, 0, 0)', [row.id, row.tenantId, row.payloadJson, row.updatedAt, row.syncedAt]); })); },
+  async savePermissions(permissions: PermissionDto[], tenantId?: string) { await this.init(); await Promise.all(permissions.map(permission => { const row = mapPermissionToRow(permission, tenantId); return executeSql('INSERT OR REPLACE INTO permissions (id, tenantId, payloadJson, updatedAt, syncedAt, isDirty, isDeleted) VALUES (?, ?, ?, ?, ?, 0, 0)', [row.id, row.tenantId, row.payloadJson, row.updatedAt, row.syncedAt]); })); },
+  async saveAvailability(items: UserAvailability[], tenantId: string) { await this.init(); await Promise.all(items.map(item => executeSql('INSERT OR REPLACE INTO user_availability (id, tenantId, userId, payloadJson, updatedAt, syncedAt, isDirty, isDeleted) VALUES (?, ?, ?, ?, ?, ?, 1, 0)', [item.id, tenantId, item.userId, JSON.stringify(item), new Date().toISOString(), null]))); },
+};

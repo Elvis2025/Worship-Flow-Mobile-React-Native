@@ -1,0 +1,15 @@
+export const MESSAGES = {
+  appName: 'Worship Flow',
+  loginSubtitle: 'Gestiona tu equipo musical en un solo lugar.',
+  forgotPassword: 'Olvidé mi contraseña',
+  login: 'Iniciar sesión',
+  logout: 'Cerrar sesión',
+  offline: 'Estás sin conexión. Los cambios se sincronizarán automáticamente.',
+  usersEmpty: 'No hay usuarios registrados todavía.',
+  genericError: 'No pudimos completar la operación. Intenta nuevamente.',
+  unauthorized: 'No tienes permisos para ver esta sección.',
+  validationError: 'Revisa los campos marcados.',
+  profileUpdated: 'Perfil actualizado correctamente.',
+  userSaved: 'Usuario guardado correctamente.',
+  pendingSync: 'Cambio guardado sin conexión. Se sincronizará automáticamente.',
+} as const;
