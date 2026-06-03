@@ -1,0 +1,12 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { router } from 'expo-router';
+import { Controller, useForm } from 'react-hook-form';
+import { Alert, ScrollView, Text } from 'react-native';
+import { WFButton, WFInput } from '@/shared/components/WFPrimitives';
+import { colors } from '@/theme/colors';
+import { useCreateUser } from '../hooks/useCreateUser';
+import { createUserSchema, CreateUserFormValues } from '../schemas/userSchemas';
+import { MusicalInstrument, MusicalKey, VocalRange } from '../types/instrument.types';
+import { UserStatus } from '../types/user.types';
+import { MESSAGES } from '@/constants/messages';
+export function CreateUserScreen() { const form = useForm<CreateUserFormValues>({ resolver: zodResolver(createUserSchema), defaultValues: { secondaryInstruments: [], roleIds: ['member'], status: UserStatus.PendingInvitation, mainInstrument: MusicalInstrument.MainVoice, vocalRange: VocalRange.Unknown, comfortableKey: MusicalKey.C } }); const mutation = useCreateUser(); const submit = form.handleSubmit(async values => { const user = await mutation.mutateAsync(values); Alert.alert(MESSAGES.appName, MESSAGES.userSaved); router.replace(`/users/${user.id}`); }); return <ScrollView style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={{ padding: 16 }}><Text style={{ color: colors.text, fontSize: 28, fontWeight: '900' }}>Crear Usuario</Text><Controller control={form.control} name="firstName" render={({ field, fieldState }) => <WFInput label="Nombre" value={field.value} onChangeText={field.onChange} error={fieldState.error?.message} />} /><Controller control={form.control} name="lastName" render={({ field, fieldState }) => <WFInput label="Apellido" value={field.value} onChangeText={field.onChange} error={fieldState.error?.message} />} /><Controller control={form.control} name="email" render={({ field, fieldState }) => <WFInput label="Email" autoCapitalize="none" value={field.value} onChangeText={field.onChange} error={fieldState.error?.message} />} /><Controller control={form.control} name="phone" render={({ field, fieldState }) => <WFInput label="Teléfono" value={field.value} onChangeText={field.onChange} error={fieldState.error?.message} />} /><WFInput label="Instrumento principal" value={form.watch('mainInstrument')} editable={false} /><WFInput label="Estado" value={form.watch('status')} editable={false} /><WFButton loading={mutation.isPending} onPress={submit}>Guardar usuario</WFButton></ScrollView>; }
