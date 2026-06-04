@@ -36,4 +36,4 @@
     "@types/react": "~19.1.10",
     "typescript": "~5.9.2"
   }
-}
+,"scripts":{"typecheck":"tsc --noEmit","lint":"eslint ."},"dependencies":{"@expo/vector-icons":"latest","@hookform/resolvers":"latest","@react-native-community/netinfo":"latest","@react-native-firebase/messaging":"latest","@react-native-mmkv/mmkv":"latest","@tanstack/react-query":"latest","expo":"latest","expo-camera":"latest","expo-image-picker":"latest","expo-linear-gradient":"latest","expo-router":"latest","expo-sqlite":"latest","moti":"latest","nativewind":"latest","react":"latest","react-hook-form":"latest","react-native":"latest","react-native-gesture-handler":"latest","react-native-reanimated":"latest","zustand":"latest","zod":"latest"},"devDependencies":{"@types/react":"latest","typescript":"latest"},"private":true}
