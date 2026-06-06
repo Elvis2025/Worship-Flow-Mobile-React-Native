@@ -9,7 +9,14 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "doctor": "npx expo-doctor"
+    "doctor": "npx expo-doctor",
+    "setup": "npm install",
+    "check:deps": "node scripts/ensure-dependencies.js",
+    "prestart": "node scripts/ensure-dependencies.js",
+    "preandroid": "node scripts/ensure-dependencies.js",
+    "preios": "node scripts/ensure-dependencies.js",
+    "preweb": "node scripts/ensure-dependencies.js",
+    "pretypecheck": "node scripts/ensure-dependencies.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
